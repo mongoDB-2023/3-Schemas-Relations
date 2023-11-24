@@ -3,6 +3,7 @@
 1. [Resseting your Database](#schema1)
 2. [Why do we you use schemas?](#schema2)
 3. [Structuring Documents](#schema3)
+4. [Data Types](#schema4)
 
 <hr>
 
@@ -116,3 +117,32 @@ pueden tener estructuras diferentes.
 Sin embargo, aunque MongoDB es conocido por su esquema dinámico, en la práctica, a menudo es beneficioso establecer 
 ciertas convenciones o acuerdos sobre la estructura de tus documentos para garantizar la coherencia y facilitar la 
 consulta y el mantenimiento de los datos. Esto se llama "esquema implícito" o "esquema flexible".
+
+
+<hr>
+
+<a name="schema4"></a>
+
+## 4. Data Types
+
+![schema](./img/schema5.png)
+
+Ejemplo
+
+```
+companyData> db.companies.find()
+[
+  {
+    _id: ObjectId('6560a511908c91a7cd6a8ae2'),
+    name: 'Fresh Apples Inc',
+    isStartup: true,
+    employess: 33,
+    funding: 12345678900123458000,
+    details: { ceo: 'Mark Super' },
+    tags: [ { title: 'super' }, { title: 'perfect' } ],
+    foundingDate: ISODate('2023-11-24T13:28:49.495Z'),
+    insertAt: Timestamp({ t: 1700832529, i: 1 })
+  }
+]
+
+```
