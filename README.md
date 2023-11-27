@@ -6,6 +6,7 @@
 4. [Data Types](#schema4)
 5. [Undestanding Relations](#schema5)
 6. [Example Exercise](#schema6)
+7. [Schema Validation](#schema7)
 
 <hr>
 
@@ -467,3 +468,55 @@ blog2> db.posts.findOne()
 
 ```
 
+
+<hr>
+
+<a name="schema7"></a>
+
+## 7. Schema Validation
+
+Con `createCollection` se puede crear una validador para el schema, `validation.js`. Ahora intentamos añadir una valor
+al que le falta algo y da error.
+
+```
+blog2> db.posts.insertOne({title:'My first post',text:'This isi my first post.',tags:['new','tech'],creator:ObjectId('6564b04cfe3f6890e9eceb59'),comments:[{text:'I like'}]})
+Uncaught:
+MongoServerError: Document failed validation
+Additional information: {
+  failingDocumentId: ObjectId('6564b7aa8ff814adc30340bb'),
+  details: {
+    operatorName: '$jsonSchema',
+    schemaRulesNotSatisfied: [
+      {
+        operatorName: 'properties',
+        propertiesNotSatisfied: [
+          {
+            propertyName: 'comments',
+            details: [
+              {
+                operatorName: 'items',
+                reason: 'At least one item did not match the sub-schema',
+                itemIndex: 0,
+                details: [
+                  {
+                    operatorName: 'required',
+                    specifiedAs: { required: [ 'text', 'author' ] },
+                    missingProperties: [ 'author' ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
+blog2> 
+
+```
+
+Si ejecutamos el archivo `validation-2js` e intentamos añadir un elemento, en este caso no da error pero sin un 
+warning en logs del sistema.
+
+ https://docs.mongodb.com/manual/core/schema-validation/
