@@ -5,6 +5,7 @@
 3. [Structuring Documents](#schema3)
 4. [Data Types](#schema4)
 5. [Undestanding Relations](#schema5)
+6. [Example Exercise](#schema6)
 
 <hr>
 
@@ -234,9 +235,191 @@ carData> db.cars.insertOne({model:'BMW', price:40000, owner:ObjectId('65647be3fe
 }
 
 ```
+### One to Many - Embedded
 
+![schema](./img/schema8.png)
+- Creamos la base de datos y las colecciones necesarias
+```
+support> db.questionThreads.insertOne({creator:'Max',question:'How does that all work?',answers:['q1d1','q1d2']})
+{
+  acknowledged: true,
+  insertedId: ObjectId('656485c5fe3f6890e9eceb4c')
+}
+db.answers.insertMany([{_id:'q1d1', text:'It works like that.'}, {_id:'q1d2', text:'Thanks!'}])
+{ acknowledged: true, insertedIds: { '0': 'q1d1', '1': 'q1d2' } }
+support> db.answers.find()
+[
+  { _id: 'q1d1', text: 'It works like that.' },
+  { _id: 'q1d2', text: 'Thanks!' }
 
+```
+- Mejor solución
+```
+support> db.questionThreads.insertOne({creator:'Max',question:'How does that all work?',answers:[{text:'like that.'},{text:'Thanks'}]})
+{
+  acknowledged: true,
+  insertedId: ObjectId('65648775fe3f6890e9eceb4d')
+}
+support> db.questionThreads.findOne()
+{
+  _id: ObjectId('65648775fe3f6890e9eceb4d'),
+  creator: 'Max',
+  question: 'How does that all work?',
+  answers: [ { text: 'like that.' }, { text: 'Thanks' } ]
+}
+```
+### One To Many - Using References
 
+Usamos el `ObjectId`
 
+```
+cityData> db.cities.findOne()
+{
+  _id: ObjectId('65648959fe3f6890e9eceb4e'),
+  name: 'New York City',
+  coordinates: { lat: 21, lng: 55 }
+}
 
+cityData> db.citiezens.find()
+[
+  {
+    _id: ObjectId('65648a4ffe3f6890e9eceb4f'),
+    name: 'Max',
+    cityId: ObjectId('65648959fe3f6890e9eceb4e')
+  },
+  {
+    _id: ObjectId('65648a4ffe3f6890e9eceb50'),
+    name: 'Manuel',
+    cityId: ObjectId('65648959fe3f6890e9eceb4e')
+  }
+]
+```
+### Many to Many - Embedded
 
+```
+shop> db.products.findOne()
+{
+  _id: ObjectId('65648b4cfe3f6890e9eceb51'),
+  title: 'A book',
+  price: 12.99
+}
+db.customers.findOne()
+{ _id: ObjectId('65648b67fe3f6890e9eceb52'), name: 'Max', age: 29 }
+ db.orders.findOne()
+{
+  _id: ObjectId('65648c6ffe3f6890e9eceb54'),
+  productID: ObjectId('65648b4cfe3f6890e9eceb51'),
+  customerId: ObjectId('65648b67fe3f6890e9eceb52')
+}
+
+```
+### Many to Many - Using References
+
+```
+bookRegistry> db.books.insertOne({name: 'My favorite Book', authors: [{name:'Max',age:29},{name:'Manuel',age:30}]})
+{
+  acknowledged: true,
+  insertedId: ObjectId('6564a438fe3f6890e9eceb55')
+}
+bookRegistry> db.books.find()
+[
+  {
+    _id: ObjectId('6564a438fe3f6890e9eceb55'),
+    name: 'My favorite Book',
+    authors: [ { name: 'Max', age: 29 }, { name: 'Manuel', age: 30 } ]
+  }
+]
+
+bookRegistry> db.authors.insertMany([{name:'Max', age:29,address:{street:'Mi calle' }},{name:'Manuel',age:30,address:{street:'Su calle'}}])
+{
+  acknowledged: true,
+  insertedIds: {
+    '0': ObjectId('6564a4ecfe3f6890e9eceb56'),
+    '1': ObjectId('6564a4ecfe3f6890e9eceb57')
+  }
+}
+bookRegistry> db.authors.find()
+[
+  {
+    _id: ObjectId('6564a4ecfe3f6890e9eceb56'),
+    name: 'Max',
+    age: 29,
+    address: { street: 'Mi calle' }
+  },
+  {
+    _id: ObjectId('6564a4ecfe3f6890e9eceb57'),
+    name: 'Manuel',
+    age: 30,
+    address: { street: 'Su calle' }
+  }
+]
+
+```
+Cambiamos la colección `books`, porque tenemos valores duplicados, nombre del autor y edad. Ponemos la referencia a 
+cada autor.
+
+```
+bookRegistry> db.books.updateOne({},{$set:{authors:[ObjectId('6564a4ecfe3f6890e9eceb56'),ObjectId('6564a4ecfe3f6890e9eceb57')]}})
+{
+  acknowledged: true,
+  insertedId: null,
+  matchedCount: 1,
+  modifiedCount: 0,
+  upsertedCount: 0
+}
+bookRegistry> db.books.find()
+[
+  {
+    _id: ObjectId('6564a438fe3f6890e9eceb55'),
+    name: 'My favorite Book',
+    authors: [
+      ObjectId('6564a4ecfe3f6890e9eceb56'),
+      ObjectId('6564a4ecfe3f6890e9eceb57')
+    ]
+  }
+]
+
+```
+
+## Summarizing Relations
+
+![schema](./img/schema10.png)
+
+### Using `lookUp()` for merging References Relations
+
+```
+bookRegistry> db.books.aggregate([{$lookup:{from: "authors", localField:'authors',foreignField:'_id',as:'creators'}}])
+[
+  {
+    _id: ObjectId('6564a438fe3f6890e9eceb55'),
+    name: 'My favorite Book',
+    authors: [
+      ObjectId('6564a4ecfe3f6890e9eceb56'),
+      ObjectId('6564a4ecfe3f6890e9eceb57')
+    ],
+    creators: [
+      {
+        _id: ObjectId('6564a4ecfe3f6890e9eceb56'),
+        name: 'Max',
+        age: 29,
+        address: { street: 'Mi calle' }
+      },
+      {
+        _id: ObjectId('6564a4ecfe3f6890e9eceb57'),
+        name: 'Manuel',
+        age: 30,
+        address: { street: 'Su calle' }
+      }
+    ]
+  }
+]
+
+```
+Lo que antes teníamos en dos colecciones, ahora tenemos en la colección de `books` también lo que hay en la colección 
+de `authors`
+
+<hr>
+
+<a name="schema6"></a>
+
+## 6. Example Exercise
