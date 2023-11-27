@@ -4,6 +4,7 @@
 2. [Why do we you use schemas?](#schema2)
 3. [Structuring Documents](#schema3)
 4. [Data Types](#schema4)
+5. [Undestanding Relations](#schema5)
 
 <hr>
 
@@ -118,6 +119,7 @@ Sin embargo, aunque MongoDB es conocido por su esquema dinámico, en la práctic
 ciertas convenciones o acuerdos sobre la estructura de tus documentos para garantizar la coherencia y facilitar la 
 consulta y el mantenimiento de los datos. Esto se llama "esquema implícito" o "esquema flexible".
 
+![schema](./img/schema6.png)
 
 <hr>
 
@@ -146,3 +148,95 @@ companyData> db.companies.find()
 ]
 
 ```
+
+
+<hr>
+
+<a name="schema5"></a>
+
+## 5. Undestanding Relations
+
+![schema](./img/schem7.png)
+
+ ### One to One Relations - Embedded
+ 
+- Creamos la base de datos `hospital`
+```
+test> use hospital
+switched to db hospital
+```
+- Creamos la colección  `patients`  con el primer paciente.
+```
+hospital> db.patients.insertOne({name:'Max',age:29,diseaseSummary:"summary-max-a"})
+{
+  acknowledged: true,
+  insertedId: ObjectId('65645f1f98a22cd4957ce658')
+}
+```
+- Creamos una segunda coleccion `summary-max-1`
+```
+hospital> db.diseaseSummaries.insertOne({_id:"summary-max-a",diseases:['cold','broken leg']})
+{ acknowledged: true, insertedId: 'summary-max-a' }
+```
+- Nuestra app necesita tener todos los datos del paciente.
+- 1º Localizar el paciente:
+```
+hospital> db.patients.find({ name: 'Max' }).forEach(function (patient) { print(patient.diseaseSummary); });
+summary-max-a
+```
+- 2º Guardamos el valor de `diseaseSummary`
+```
+var dsid = db.patients.findOne().diseaseSummary
+```
+- 3º Obtenemos de la otra colección los valores deseados
+```
+hospital> db.diseaseSummaries.findOne({_id:dsid})
+{ _id: 'summary-max-a', diseases: [ 'cold', 'broken leg' ] }
+```
+
+Esto no es buena manera de trabajar, vamos a ver esto con relacions 1 a 1.
+```
+db.patients.insertOne({name:'Max',age:29,diseaseSummary:{diseases:['cold','broken leg']}})
+hospital> db.patients.findOne()
+{
+  _id: ObjectId('65646854404a9eb424ecebc2'),
+  name: 'Max',
+  age: 29,
+  diseaseSummary: { diseases: [ 'cold', 'broken leg' ] }
+}
+```
+### One to One - Using References
+
+- Creamos una nueva base de datos
+```
+test> use carData
+switched to db carData
+carData> db.persons.insertOne({name:'Max', age:29, salary:3000})
+{
+  acknowledged: true,
+  insertedId: ObjectId('65647a56fe3f6890e9eceb49')
+}
+
+db.persons.findOne()
+{
+  _id: ObjectId('65647be3fe3f6890e9eceb4a'),
+  name: 'Max',
+  age: 29,
+  salary: 3000
+}
+```
+- Hacemos la referencia por medio del `ObjectId ` 
+```
+carData> db.cars.insertOne({model:'BMW', price:40000, owner:ObjectId('65647be3fe3f6890e9eceb4a')})
+{
+  acknowledged: true,
+  insertedId: ObjectId('65648375fe3f6890e9eceb4b')
+}
+
+```
+
+
+
+
+
+
