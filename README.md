@@ -423,3 +423,47 @@ de `authors`
 <a name="schema6"></a>
 
 ## 6. Example Exercise
+
+![exercise](./img/schema11.png)
+![exercise](./img/schema12.png)
+![exercise](./img/schema13.png)
+![exercise](./img/schema14.png)
+![exercise](./img/schema15.png)
+
+- `users`
+```
+blog2> db.users.insertMany([{name:'Max', age:29,email:'max@test.com'},{name:'Manuel',age:30,email:'manuel@test.com'}]
+blog2> db.users.find()
+[
+  {
+    _id: ObjectId('6564b04cfe3f6890e9eceb58'),
+    name: 'Max',
+    age: 29,
+    email: 'max@test.com'
+  },
+  {
+    _id: ObjectId('6564b04cfe3f6890e9eceb59'),
+    name: 'Manuel',
+    age: 30,
+    email: 'manuel@test.com'
+  }
+]
+
+
+blog2> db.posts.insertOne({title:'My first post',text:'This isi my first post.',tags:['new','tech'],creator:ObjectId('6564b04cfe3f6890e9eceb59'),comments:[{text:'I like',author:ObjectId('6564b04cfe3f6890e9eceb58')}]})
+{
+  acknowledged: true,
+  insertedId: ObjectId('6564b162fe3f6890e9eceb5a')
+}
+blog2> db.posts.findOne()
+{
+  _id: ObjectId('6564b162fe3f6890e9eceb5a'),
+  title: 'My first post',
+  text: 'This isi my first post.',
+  tags: [ 'new', 'tech' ],
+  creator: ObjectId('6564b04cfe3f6890e9eceb59'),
+  comments: [ { text: 'I like', author: ObjectId('6564b04cfe3f6890e9eceb58') } ]
+}
+
+```
+
